@@ -13,7 +13,7 @@ const Sketch: React.FC = () => {
 
       p.setup = () => {
         p.createCanvas(1920, 800);
-        for (let i = 0; i < 250; i++) {
+        for (let i = 0; i < 300; i++) {
           flock.push(new Boid(p.random(p.width), p.random(p.height), p));
         }
       };
@@ -69,7 +69,7 @@ const Sketch: React.FC = () => {
         }
 
         show() {
-          this.p.fill(100, 50, 0);
+          this.p.fill(105, 150, 200);
           this.p.stroke(200);
           this.p.strokeWeight(2);
           this.p.ellipse(this.position.x, this.position.y, 50, 50);
