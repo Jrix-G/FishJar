@@ -13,7 +13,7 @@ const Sketch: React.FC = () => {
 
       p.setup = () => {
         p.createCanvas(1920, 800);
-        for (let i = 0; i < 300; i++) {
+        for (let i = 0; i < 250; i++) {
           flock.push(new Boid(p.random(p.width), p.random(p.height), p));
         }
       };
