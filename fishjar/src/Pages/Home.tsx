@@ -7,7 +7,7 @@ const Sketch: React.FC = () => {
   useEffect(() => {
     const sketch = (p: p5) => {
       let flock: Boid[] = [];
-      let gridSize = 50;
+      let gridSize = 30;
 
       let grid: Map<string, Boid[]> = new Map();
 
@@ -29,6 +29,8 @@ const Sketch: React.FC = () => {
           grid.get(gridKey)?.push(boid);
         }
 
+        drawGrid();
+
         for (let boid of flock) {
           boid.edges();
           boid.flock(getNeighbors(boid));
@@ -37,6 +39,16 @@ const Sketch: React.FC = () => {
           boid.link(getNeighbors(boid));
         }
       };
+
+      function drawGrid() {
+        p.stroke(255, 50);
+        for (let x = 0; x < p.width; x += gridSize) {
+          p.line(x, 0, x, p.height);
+        }
+        for (let y = 0; y < p.height; y += gridSize) {
+          p.line(0, y, p.width, y);
+        }
+      }
 
       function getNeighbors(boid: Boid): Boid[] {
         let neighbors: Boid[] = [];
