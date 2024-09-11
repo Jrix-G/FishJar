@@ -8,15 +8,14 @@ const Sketch: React.FC = () => {
     const sketch = (p: p5) => {
       let flock: Boid[] = [];
       let gridSize = 30;
+
       let grid: Map<string, Boid[]> = new Map();
-      let eatingPoints: p5.Vector[] = [];
 
       p.setup = () => {
-        p.createCanvas(1920, 600);
-        for (let i = 0; i < 10; i++) {
+        p.createCanvas(1920, 800);
+        for (let i = 0; i < 250; i++) {
           flock.push(new Boid(p.random(p.width), p.random(p.height), p));
         }
-        createEatingPoints();
       };
 
       p.draw = () => {
@@ -31,64 +30,15 @@ const Sketch: React.FC = () => {
         }
 
         drawGrid();
-        drawEatingPoints();
 
         for (let boid of flock) {
+          boid.edges();
+          boid.flock(getNeighbors(boid));
           boid.update();
           boid.show();
-          noContact();
-          drawVectors();
-          randomizeMovements();
-
-          boid.edges();
+          boid.link(getNeighbors(boid));
         }
       };
-
-      function drawVectors() {
-        for (let boid of flock) {
-          let endX = boid.position.x + boid.velocity.x * 10;
-          let endY = boid.position.y + boid.velocity.y * 10; 
-      
-          p.stroke(150, 120, 100);
-          p.line(boid.position.x, boid.position.y, endX, endY);
-        }
-      }
-
-      function noContact() {
-        for (let boid of flock) {
-          let neighbors = getNeighbors(boid);
-          for (let neighbor of neighbors) {
-            let distance = p.dist(boid.position.x, boid.position.y, neighbor.position.x, neighbor.position.y);
-            if (distance < 100) {
-              let diff = p5.Vector.sub(boid.position, neighbor.position);
-              diff.normalize();
-              diff.div(distance);
-              boid.velocity.add(diff);
-            }
-          }
-        }
-      }
-
-      function randomizeMovements() {
-        for (let boid of flock) {
-          boid.velocity.add(p5.Vector.random2D().mult(p.random(0.3, 0.5)));
-        }
-      }
-
-      function createEatingPoints() {
-        for (let i = 0; i < 10; i++) {
-          let x = p.random(p.width);
-          let y = p.random(p.height);
-          eatingPoints.push(p.createVector(x, y)); 
-        }
-      }
-
-      function drawEatingPoints() {
-        p.fill(255, 0, 0);
-        for (let point of eatingPoints) {
-          p.ellipse(point.x, point.y, 10, 10);
-        }
-      }
 
       function drawGrid() {
         p.stroke(255, 50);
