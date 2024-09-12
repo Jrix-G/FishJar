@@ -12,11 +12,12 @@ const Sketch: React.FC = () => {
       let eatingPoints: p5.Vector[] = [];
 
       p.setup = () => {
-        p.createCanvas(1920, 600);
+        p.createCanvas(1200, 600);
         for (let i = 0; i < 10; i++) {
-          flock.push(new Boid(p.random(p.width), p.random(p.height), p));
+          let color = p.color(100, 100, 100);
+          flock.push(new Boid(p.random(p.width), p.random(p.height), p, color));
         }
-        createEatingPoints();
+        createEatingPoints(10);
       };
 
       p.draw = () => {
@@ -37,8 +38,8 @@ const Sketch: React.FC = () => {
           boid.update();
           boid.show();
           noContact();
-          drawVectors();
           randomizeMovements();
+          checkEatingPoints(boid);
 
           boid.edges();
         }
@@ -75,12 +76,14 @@ const Sketch: React.FC = () => {
         }
       }
 
-      function createEatingPoints() {
-        for (let i = 0; i < 10; i++) {
-          let x = p.random(p.width);
-          let y = p.random(p.height);
-          eatingPoints.push(p.createVector(x, y)); 
-        }
+      function createEatingPoints(numPoints: number=10) {
+        setInterval(() => {
+          for (let i = 0; i < numPoints; i++) {
+            let x = p.random(p.width);
+            let y = p.random(p.height);
+            eatingPoints.push(p.createVector(x, y));
+          }
+        }, 2000);
       }
 
       function drawEatingPoints() {
@@ -112,26 +115,55 @@ const Sketch: React.FC = () => {
         return neighbors;
       }
 
+      function checkEatingPoints(boid: Boid) {
+        if (eatingPoints.length === 0) return;
+
+        let closestPoint: p5.Vector | null = null;
+        let closestDistance = Infinity;
+        for (let point of eatingPoints) {
+          let distance = p.dist(boid.position.x, boid.position.y, point.x, point.y);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestPoint = point;
+          }
+        }
+
+        if (closestDistance < 10) {
+          boid.eat();
+          if (closestPoint) {
+            eatingPoints.splice(eatingPoints.indexOf(closestPoint), 1);
+          }
+        } else if (closestPoint) {
+          boid.seek(closestPoint);
+        }
+      }
+
       class Boid {
         position: p5.Vector;
         velocity: p5.Vector;
         acceleration: p5.Vector;
         maxForce: number;
         maxSpeed: number;
+        isEating: boolean;
+        life: number;
+        color: p5.Color;
         p: p5;
 
-        constructor(x: number, y: number, p: p5) {
+        constructor(x: number, y: number, p: p5, color: p5.Color) {
           this.position = p.createVector(x, y);
           this.velocity = p5.Vector.random2D();
           this.velocity.setMag(p.random(2, 4));
           this.acceleration = p.createVector(0, 0);
           this.maxForce = 0.5;
           this.maxSpeed = 6;
+          this.isEating = false;
+          this.color = color;
+          this.life = 100;
           this.p = p;
         }
 
         show() {
-          this.p.fill(105, 150, 200);
+          this.p.fill(this.color);
           this.p.stroke(200);
           this.p.strokeWeight(2);
           this.p.ellipse(this.position.x, this.position.y, 50, 50);
@@ -257,6 +289,23 @@ const Sketch: React.FC = () => {
             }
           }
           return neighbors;
+        }
+
+        seek(target: p5.Vector) {
+          let desired = p5.Vector.sub(target, this.position);
+          desired.setMag(this.maxSpeed);
+          let steer = p5.Vector.sub(desired, this.velocity);
+          steer.limit(this.maxForce);
+          this.acceleration.add(steer);
+        }
+
+        eat() {
+          this.isEating = true;
+          let currentColor = this.p.green(this.color);
+          if (currentColor < 245) {
+            this.color = p.color(100, currentColor+10, 100)
+            this.life += 10;
+          }
         }
       }
     };
