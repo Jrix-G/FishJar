@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import p5 from 'p5';
+import Enemies from './Enemies.tsx';
 
 const Sketch: React.FC = () => {
   const sketchRef = useRef<HTMLDivElement>(null);
@@ -7,6 +8,7 @@ const Sketch: React.FC = () => {
   useEffect(() => {
     const sketch = (p: p5) => {
       let flock: Boid[] = [];
+      let enemies: Enemies[] = [];
       let gridSize = 30;
       let grid: Map<string, Boid[]> = new Map();
       let eatingPoints: p5.Vector[] = [];
@@ -18,6 +20,11 @@ const Sketch: React.FC = () => {
           flock.push(new Boid(p.random(p.width), p.random(p.height), p, color));
         }
         createEatingPoints(10);
+
+        for (let i = 0; i < 2; i++) { 
+          let color = p.color(100, 100, 255);
+          enemies.push(new Enemies(p.random(p.width), p.random(p.height), p, color));
+        }
       };
 
       p.draw = () => {
@@ -38,10 +45,19 @@ const Sketch: React.FC = () => {
           boid.update();
           boid.show();
           noContact();
-          randomizeMovements();
+          //drawVectors();
+          randomizeMovementsBoids();
           checkEatingPoints(boid);
 
           boid.edges();
+        }
+
+        for(let enemie of enemies) {
+          enemie.update();
+          enemie.show();
+          enemie.edges();
+          randomizeMovementsEnemies();
+          enemie.drawVector();
         }
       };
 
@@ -70,9 +86,15 @@ const Sketch: React.FC = () => {
         }
       }
 
-      function randomizeMovements() {
+      function randomizeMovementsBoids() {
         for (let boid of flock) {
           boid.velocity.add(p5.Vector.random2D().mult(p.random(0.3, 0.5)));
+        }
+      }
+
+      function randomizeMovementsEnemies() {
+        for (let enemie of enemies) {
+          enemie.velocity.add(p5.Vector.random2D().mult(p.random(0.3, 0.5)));
         }
       }
 
@@ -311,7 +333,7 @@ const Sketch: React.FC = () => {
     };
 
     const p5Instance = new p5(sketch, sketchRef.current as HTMLElement);
-
+    
     return () => {
       p5Instance.remove();
     };
