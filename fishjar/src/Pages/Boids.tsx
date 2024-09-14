@@ -33,11 +33,11 @@ class Boid {
     }
 
     edges() {
-        if (this.position.x > this.p.width || this.position.x < 0) {
-        this.velocity.x *= -1;
+        if (this.position.x+50 > this.p.width || this.position.x < 50) {
+            this.velocity.x *= -1;
         }
-        if (this.position.y > this.p.height || this.position.y < 0) {
-        this.velocity.y *= -1;
+        if (this.position.y+50 > this.p.height || this.position.y < 50) {
+            this.velocity.y *= -1;
         }
     }
 

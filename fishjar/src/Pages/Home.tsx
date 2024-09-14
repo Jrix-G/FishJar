@@ -16,7 +16,7 @@ const Sketch: React.FC = () => {
 
       p.setup = () => {
         p.createCanvas(1920, 900);
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 2; i++) {
           let color = p.color(100, 100, 100);
           flock.push(new Boid(p.random(p.width), p.random(p.height), p, color));
         }
