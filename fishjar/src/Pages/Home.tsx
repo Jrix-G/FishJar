@@ -1,10 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import p5 from 'p5';
+import * as tf from '@tensorflow/tfjs';
 import Enemies from './Enemies.tsx';
 import Boid from './Boids.tsx';
 
 const Sketch: React.FC = () => {
   const sketchRef = useRef<HTMLDivElement>(null);
+  let model: tf.Sequential;
+  let isTraining = false;
+  let frameCount = 0;
 
   useEffect(() => {
     const sketch = (p: p5) => {
@@ -13,6 +17,22 @@ const Sketch: React.FC = () => {
       let gridSize = 30;
       let grid: Map<string, Boid[]> = new Map();
       let eatingPoints: p5.Vector[] = [];
+
+      async function loadOrCreateModel() {
+        try {
+          model = await tf.loadLayersModel('localstorage://my-model') as tf.Sequential;
+          console.log('Modèle chargé avec succès');
+        } catch (error) {
+          console.log('Aucun modèle trouvé, création d\'un nouveau modèle');
+          model = tf.sequential();
+          model.add(tf.layers.dense({ units: 24, inputShape: [5], activation: 'relu' }));
+          model.add(tf.layers.dense({ units: 24, activation: 'relu' }));
+          model.add(tf.layers.dense({ units: 4, activation: 'linear' }));
+          model.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
+        }
+      }
+
+      loadOrCreateModel();
 
       p.setup = () => {
         p.createCanvas(1920, 900);
@@ -28,9 +48,17 @@ const Sketch: React.FC = () => {
           let color = p.color(100, 100, 255);
           enemies.push(new Enemies(p.random(p.width), p.random(p.height), p, color));
         }
+
+        setInterval(() => {
+          for (let boid of flock) {
+            boid.decreaseLife();
+          }
+          flock = flock.filter(boid => !boid.isDead());
+        }, 5000);
       };
 
       p.draw = () => {
+        frameCount++;
         p.background(0, 0, 0);
 
         grid.clear();
@@ -44,18 +72,26 @@ const Sketch: React.FC = () => {
         drawGrid();
         drawEatingPoints();
 
+        if (frameCount % 10 === 0) { 
+          for (let boid of flock) {
+            let state = getState(boid);
+            let action = chooseAction(state);
+            performAction(boid, action);
+            let reward = getReward(boid);
+            let nextState = getState(boid);
+            trainModel(state, action, reward, nextState);
+          }
+        }
+
         for (let boid of flock) {
           boid.update();
           boid.show();
           noContact();
-          //drawVectors();
-          randomizeMovementsBoids();
           checkEatingPoints(boid);
-
           boid.edges();
         }
 
-        for(let enemie of enemies) {
+        for (let enemie of enemies) {
           enemie.update();
           enemie.show();
           enemie.edges();
@@ -64,14 +100,62 @@ const Sketch: React.FC = () => {
         }
       };
 
-      function drawVectors() {
-        for (let boid of flock) {
-          let endX = boid.position.x + boid.velocity.x * 10;
-          let endY = boid.position.y + boid.velocity.y * 10; 
-      
-          p.stroke(150, 120, 100);
-          p.line(boid.position.x, boid.position.y, endX, endY);
+      function getState(boid: Boid): number[] {
+        return [boid.position.x, boid.position.y, boid.velocity.x, boid.velocity.y, getClosestFoodDistance(boid)];
+      }
+
+      function chooseAction(state: number[]): number {
+        return tf.tidy(() => {
+          const input = tf.tensor2d([state]);
+          const prediction = model.predict(input) as tf.Tensor;
+          return prediction.argMax(1).dataSync()[0];
+        });
+      }
+
+      function performAction(boid: Boid, action: number) {
+        switch(action) {
+          case 0: boid.velocity.add(p.createVector(1, 0)); break;
+          case 1: boid.velocity.add(p.createVector(-1, 0)); break;
+          case 2: boid.velocity.add(p.createVector(0, 1)); break;
+          case 3: boid.velocity.add(p.createVector(0, -1)); break;
         }
+      }
+
+      function getReward(boid: Boid): number {
+        if (boid.isEating) return 1;
+        if (boid.isDead()) return -1;
+        return 0;
+      }
+
+      function trainModel(state: number[], action: number, reward: number, nextState: number[]) {
+        if (isTraining) return;
+
+        tf.tidy(() => {
+          const target = reward + 0.95 * (model.predict(tf.tensor2d([nextState])) as tf.Tensor).max(1).dataSync()[0];
+          const targetVec = (model.predict(tf.tensor2d([state])) as tf.Tensor).dataSync();
+          targetVec[action] = target;
+
+          isTraining = true;
+          model.fit(tf.tensor2d([state]), tf.tensor2d([Uint8Array.from(targetVec)]), { epochs: 1 }).then(() => {
+            isTraining = false;
+            // Sauvegarder le modèle après chaque entraînement
+            model.save('localstorage://my-model');
+          }).catch((error) => {
+            console.error(error);
+            isTraining = false;
+          });
+        });
+      }
+
+      function getClosestFoodDistance(boid: Boid): number {
+        let closestDistance = Infinity;
+        for (let point of eatingPoints) {
+          let distance = p.dist(boid.position.x, boid.position.y, point.x, point.y);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+          }
+        }
+        return closestDistance;
       }
 
       function noContact() {
@@ -86,12 +170,6 @@ const Sketch: React.FC = () => {
               boid.velocity.add(diff);
             }
           }
-        }
-      }
-
-      function randomizeMovementsBoids() {
-        for (let boid of flock) {
-          boid.velocity.add(p5.Vector.random2D().mult(p.random(0.3, 0.5)));
         }
       }
 

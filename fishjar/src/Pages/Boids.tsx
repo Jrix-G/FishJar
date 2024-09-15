@@ -25,6 +25,19 @@ class Boid {
         this.p = p;
     }
 
+    decreaseLife() {
+        this.life -= 10;
+        let currentColor = this.p.green(this.color);
+        if (currentColor > 0) {
+            this.color = this.p.color(100, currentColor-30, 100)
+            this.life += 10;
+        }
+    }
+
+    isDead(): boolean {
+        return this.life <= 0;
+    }
+
     show() {
         this.p.fill(this.color);
         this.p.stroke(200);
@@ -166,8 +179,8 @@ class Boid {
         this.isEating = true;
         let currentColor = this.p.green(this.color);
         if (currentColor < 245) {
-        this.color = this.p.color(100, currentColor+10, 100)
-        this.life += 10;
+            this.color = this.p.color(100, currentColor+10, 100)
+            this.life += 10;
         }
     }
     }
