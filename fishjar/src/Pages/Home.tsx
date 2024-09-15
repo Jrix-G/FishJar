@@ -20,6 +20,7 @@ const Sketch: React.FC = () => {
           let color = p.color(100, 100, 100);
           flock.push(new Boid(p.random(p.width), p.random(p.height), p, color));
         }
+        
         createEatingPoints(10);
         startEatingPointsInterval(2000, 10);
 
