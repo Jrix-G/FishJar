@@ -9,6 +9,7 @@ class Boid {
     maxSpeed: number;
     isEating: boolean;
     life: number;
+    danger: boolean;
     color: p5.Color;
     p: p5;
 
@@ -18,10 +19,11 @@ class Boid {
         this.velocity.setMag(p.random(2, 4));
         this.acceleration = p.createVector(0, 0);
         this.maxForce = 0.5;
-        this.maxSpeed = 6;
+        this.maxSpeed = 5;
         this.isEating = false;
         this.color = color;
         this.life = 100;
+        this.danger = false;
         this.p = p;
     }
 
@@ -46,10 +48,10 @@ class Boid {
     }
 
     edges() {
-        if (this.position.x+50 > this.p.width || this.position.x < 50) {
+        if (this.position.x > this.p.width || this.position.x < 0) {
             this.velocity.x *= -1;
         }
-        if (this.position.y+50 > this.p.height || this.position.y < 50) {
+        if (this.position.y > this.p.height || this.position.y < 0) {
             this.velocity.y *= -1;
         }
     }
@@ -160,11 +162,23 @@ class Boid {
         let row = Math.floor(this.position.y / gridSize);
         let neighbors: string[] = []; 
         for (let i = -1; i <= 1; i++) {
-        for (let j = -1; j <= 1; j++) {
-            neighbors.push(`${col + i},${row + j}`);
-        }
+            for (let j = -1; j <= 1; j++) {
+                neighbors.push(`${col + i},${row + j}`);
+            }
         }
         return neighbors;
+    }
+
+    getEnemiesAround(neighbors) {
+        if (neighbors.length > 0) {
+            for(let i = 0; i < neighbors.length; i++){
+                if(neighbors[i].danger){
+                    console.log("There is an ennemie", neighbors[i].danger)
+                }
+            }
+        } else {
+            console.log("");
+        }
     }
 
     seek(target: p5.Vector) {

@@ -9,6 +9,7 @@ class Enemies {
     maxSpeed: number;
     isEating: boolean;
     life: number;
+    danger: boolean;
     color: p5.Color;
     p: p5;
 
@@ -18,7 +19,8 @@ class Enemies {
         this.velocity.setMag(p.random(2,3));
         this.acceleration = p.createVector(0,0);
         this.maxForce = 0.5;
-        this.maxSpeed = 6;
+        this.maxSpeed = 4;
+        this.danger = true;
         this.isEating = false;
         this.color = color;
         this.life = 100;

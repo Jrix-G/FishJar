@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import p5 from 'p5';
-import * as tf from '@tensorflow/tfjs';
+//import * as tf from '@tensorflow/tfjs';
 import Enemies from './Enemies.tsx';
 import Boid from './Boids.tsx';
 
 const Sketch: React.FC = () => {
   const sketchRef = useRef<HTMLDivElement>(null);
-  let model: tf.Sequential;
+  //let model: tf.Sequential;
   let isTraining = false;
   let frameCount = 0;
 
@@ -18,6 +18,7 @@ const Sketch: React.FC = () => {
       let grid: Map<string, Boid[]> = new Map();
       let eatingPoints: p5.Vector[] = [];
 
+      /*
       async function loadOrCreateModel() {
         try {
           model = await tf.loadLayersModel('localstorage://my-model') as tf.Sequential;
@@ -34,9 +35,11 @@ const Sketch: React.FC = () => {
 
       loadOrCreateModel();
 
+      */
+
       p.setup = () => {
-        p.createCanvas(1920, 900);
-        for (let i = 0; i < 2; i++) {
+        p.createCanvas(1200, 600);
+        for (let i = 0; i < 10; i++) {
           let color = p.color(100, 100, 100);
           flock.push(new Boid(p.random(p.width), p.random(p.height), p, color));
         }
@@ -72,6 +75,7 @@ const Sketch: React.FC = () => {
         drawGrid();
         drawEatingPoints();
 
+        /*
         if (frameCount % 10 === 0) { 
           for (let boid of flock) {
             let state = getState(boid);
@@ -82,6 +86,7 @@ const Sketch: React.FC = () => {
             trainModel(state, action, reward, nextState);
           }
         }
+        */
 
         for (let boid of flock) {
           boid.update();
@@ -89,6 +94,8 @@ const Sketch: React.FC = () => {
           noContact();
           checkEatingPoints(boid);
           boid.edges();
+          boid.getEnemiesAround(gridSize);
+          boid.getEnemiesAround(getNeighbors(boid));
         }
 
         for (let enemie of enemies) {
@@ -100,6 +107,7 @@ const Sketch: React.FC = () => {
         }
       };
 
+      /*
       function getState(boid: Boid): number[] {
         return [boid.position.x, boid.position.y, boid.velocity.x, boid.velocity.y, getClosestFoodDistance(boid)];
       }
@@ -146,6 +154,8 @@ const Sketch: React.FC = () => {
           });
         });
       }
+      
+      */
 
       function getClosestFoodDistance(boid: Boid): number {
         let closestDistance = Infinity;
