@@ -1,11 +1,8 @@
-n = int(input("Votre nombre"))
+# Demande à l'utilisateur le prix en euros
+prix_euros = float(input("Prix en euros : "))
 
-total = n
-days = n//(60*60*24)
-total -= days*60*60*24
-hours = total//(60*60)
-total -= hours*60*60
-minutes = total//60
-total -= minutes*60
-seconds = total
-print(f"{days} jours, {hours} heures, {minutes} minutes et {seconds} secondes")
+# Convertit le prix en dollars
+prix_dollars = prix_euros * 1.0627
+
+# Affiche le prix en dollars
+print("Prix en dollars :", prix_dollars)
