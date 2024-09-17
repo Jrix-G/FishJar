@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import p5 from 'p5';
-//import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs';
 import Enemies from './Enemies.tsx';
 import Boid from './Boids.tsx';
 
 const Sketch: React.FC = () => {
   const sketchRef = useRef<HTMLDivElement>(null);
-  //let model: tf.Sequential;
+  let model: tf.Sequential;
   let isTraining = false;
   let frameCount = 0;
 
@@ -18,7 +18,6 @@ const Sketch: React.FC = () => {
       let grid: Map<string, Boid[]> = new Map();
       let eatingPoints: p5.Vector[] = [];
 
-      /*
       async function loadOrCreateModel() {
         try {
           model = await tf.loadLayersModel('localstorage://my-model') as tf.Sequential;
@@ -35,11 +34,9 @@ const Sketch: React.FC = () => {
 
       loadOrCreateModel();
 
-      */
-
       p.setup = () => {
         p.createCanvas(1200, 600);
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 5; i++) {
           let color = p.color(100, 100, 100);
           flock.push(new Boid(p.random(p.width), p.random(p.height), p, color));
         }
@@ -75,7 +72,6 @@ const Sketch: React.FC = () => {
         drawGrid();
         drawEatingPoints();
 
-        /*
         if (frameCount % 10 === 0) { 
           for (let boid of flock) {
             let state = getState(boid);
@@ -86,7 +82,6 @@ const Sketch: React.FC = () => {
             trainModel(state, action, reward, nextState);
           }
         }
-        */
 
         for (let boid of flock) {
           boid.update();
@@ -107,7 +102,6 @@ const Sketch: React.FC = () => {
         }
       };
 
-      /*
       function getState(boid: Boid): number[] {
         return [boid.position.x, boid.position.y, boid.velocity.x, boid.velocity.y, getClosestFoodDistance(boid)];
       }
@@ -122,10 +116,26 @@ const Sketch: React.FC = () => {
 
       function performAction(boid: Boid, action: number) {
         switch(action) {
-          case 0: boid.velocity.add(p.createVector(1, 0)); break;
-          case 1: boid.velocity.add(p.createVector(-1, 0)); break;
-          case 2: boid.velocity.add(p.createVector(0, 1)); break;
-          case 3: boid.velocity.add(p.createVector(0, -1)); break;
+          case 0: 
+            if (boid.velocity.x !== 0) {
+              boid.velocity.add(p.createVector(1, 0).div(boid.velocity.x));
+            }
+            break;
+          case 1: 
+            if (boid.velocity.x !== 0) {
+              boid.velocity.add(p.createVector(-1, 0).div(boid.velocity.x));
+            }
+            break;
+          case 2: 
+            if (boid.velocity.y !== 0) {
+              boid.velocity.add(p.createVector(0, 1).div(boid.velocity.y));
+            }
+            break;
+          case 3: 
+            if (boid.velocity.y !== 0) {
+              boid.velocity.add(p.createVector(0, -1).div(boid.velocity.y));
+            }
+            break;
         }
       }
 
@@ -137,25 +147,27 @@ const Sketch: React.FC = () => {
 
       function trainModel(state: number[], action: number, reward: number, nextState: number[]) {
         if (isTraining) return;
-
+      
         tf.tidy(() => {
           const target = reward + 0.95 * (model.predict(tf.tensor2d([nextState])) as tf.Tensor).max(1).dataSync()[0];
           const targetVec = (model.predict(tf.tensor2d([state])) as tf.Tensor).dataSync();
           targetVec[action] = target;
-
+      
           isTraining = true;
           model.fit(tf.tensor2d([state]), tf.tensor2d([Uint8Array.from(targetVec)]), { epochs: 1 }).then(() => {
             isTraining = false;
-            // Sauvegarder le modèle après chaque entraînement
-            model.save('localstorage://my-model');
+            model.save('localstorage://my-model').then(() => {
+              console.log('Model saved successfully');
+            }).catch((error) => {
+              console.error('Error saving model:', error);
+            });
           }).catch((error) => {
-            console.error(error);
+            console.error('Error during model training:', error);
             isTraining = false;
           });
         });
       }
       
-      */
 
       function getClosestFoodDistance(boid: Boid): number {
         let closestDistance = Infinity;
@@ -176,7 +188,9 @@ const Sketch: React.FC = () => {
             if (distance < 100) {
               let diff = p5.Vector.sub(boid.position, neighbor.position);
               diff.normalize();
-              diff.div(distance);
+              if (distance !== 0) {
+                diff.div(distance);
+              }
               boid.velocity.add(diff);
             }
           }
