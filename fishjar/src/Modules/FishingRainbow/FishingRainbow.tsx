@@ -13,7 +13,7 @@ const Sketch: React.FC = () => {
 
       p.setup = () => {
         p.createCanvas(1920, 800);
-        for (let i = 0; i < 250; i++) {
+        for (let i = 0; i < 150; i++) {
           flock.push(new Boid(p.random(p.width), p.random(p.height), p));
         }
       };
@@ -221,7 +221,7 @@ const Sketch: React.FC = () => {
   return <div ref={sketchRef}></div>;
 };
 
-const Home: React.FC = () => {
+const FishRainbow: React.FC = () => {
   return (
     <div style={{ width: '100vw', height: '100vh', backgroundColor: 'black' }}>
       <Sketch />
@@ -229,4 +229,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
+export default FishRainbow;
