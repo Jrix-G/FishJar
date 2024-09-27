@@ -60,7 +60,6 @@ const Sketch: React.FC = () => {
       p.draw = () => {
         frameCount++;
         p.background(0, 0, 0);
-
         grid.clear();
 
         for (let boid of flock) {
