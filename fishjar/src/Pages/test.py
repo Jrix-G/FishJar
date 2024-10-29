@@ -13,11 +13,3 @@ def estParfait(n):
 def parfaits_entre(binf=2, bsup=100):
     if binf > bsup:
         print("Test avec bmin > bsup")
-        return
-    
-    print(f"Nombres parfaits de [{binf},{bsup}]")
-    parfaits = [n for n in range(binf, bsup + 1) if estParfait(n)]
-    if parfaits:
-        print(" ".join(map(str, parfaits)))
-    else:
-        print("Aucun nombre parfait trouvé dans cet intervalle.")
