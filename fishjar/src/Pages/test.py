@@ -9,7 +9,3 @@ def sommeDivPropre(n):
 
 def estParfait(n):
     return sommeDivPropre(n) == n
-
-def parfaits_entre(binf=2, bsup=100):
-    if binf > bsup:
-        print("Test avec bmin > bsup")
