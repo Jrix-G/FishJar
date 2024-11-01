@@ -9,3 +9,5 @@ def sommeDivPropre(n):
 
 def estParfait(n):
     return sommeDivPropre(n) == n
+
+g
