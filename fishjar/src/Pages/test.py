@@ -4,10 +4,4 @@ def sommeDivPropre(n):
     somme = 0
     for i in range(1, n // 2 + 1):
         if n % i == 0:
-            somme += i
-    return somme
-
-def estParfait(n):
-    return sommeDivPropre(n) == n
-
-g
+ 
